@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=1036">
+    <title></title>
+</head>
+<body>
+    <h1>Hist-o-gram</h1>
+
+    <p> Enter a url to jpg, get a cool histogram. There is no server side component to this, entirely client side.</p>
+    <p>Because I hacked this together in a very short amount of time the code is...rough around the edges and not re-usable at the moment. Cool though.</p>
+    <form id="theform" action="/" method="get" accept-charset="utf-8">
+        
+        <p><label for="img">Check out this image:</label><input id="img" type="text" value="bacon.jpg"></p>
+
+        <p><input type="submit" value="Continue &rarr;"></p>
+    </form>
+    <div id="preview">
+        
+    </div>
+</body>
+<script type="text/javascript" charset="utf-8">
+
+function checkit(url){
+    var canvas = document.createElement('canvas');
+        ctx = canvas.getContext('2d'),
+        img = new Image(),
+        map = ['red','green','blue'],
+        valHash = {
+            red:[],
+            blue:[],
+            green:[]
+        },
+    max = {red:0,green:0,blue:0};
+    
+    img.onload = function(){
+        ctx.drawImage(img, 0,0, img.height, img.width);
+        var data = ctx.getImageData(0,0,img.width,img.height);
+        for (var i=1; i < img.height; i++) {
+            for (var j=0; j < img.width; j++) {
+                for (var k=0; k <= 2; k++) {
+                    var rVal = (data.data[((i*(data.width*4)) + (j*4)) + k]);
+                    if(!rVal){
+                        rVal = 0;
+                    }
+                    if(valHash[map[k]][rVal]){
+                        valHash[map[k]][rVal] += 1;
+                    }else{
+                        valHash[map[k]][rVal] = 1;
+                    }
+                };
+            }
+        }
+
+        var c2 = document.createElement('canvas');
+        c2.height = 200;
+        c2.width = 255;
+        ctx2 = c2.getContext('2d');
+        var holder;
+        
+        max = {red:0,green:0,blue:0};
+        var colorMap = {red:"255,0,0",green:"0,255,0",blue:"0,0,255"};
+        
+        for (var i=1; i < 255; i++) {
+            
+            for (var j=0; j < 3; j++) {
+                
+                if(valHash[map[j]][i] > max[map[j]]){
+                    max[map[j]] = valHash[map[j]][i];
+                }
+                
+            }
+        }
+        
+        
+        
+        for (var i=0; i < 255; i++) {
+            
+            for (var j=0; j < 3; j++) {
+                holder = valHash[map[j]][i]/max[map[j]];
+                  ctx2.fillStyle = "rgba("+colorMap[map[j]]+",0.5)";
+                  ctx2.fillRect(i,200, 1, -Math.round(holder * 200));
+   
+            };
+        }
+        
+        var preview = document.getElementById('preview');
+        preview.innerHTML = '';
+        
+        var myimg = document.createElement('img');
+        myimg.src = url;
+        preview.appendChild(myimg);
+        var histogram = document.createElement('img');
+        histogram.height=200;
+        histogram.width=255;
+        histogram.src = c2.toDataURL();
+        preview.appendChild(histogram);
+        
+        drawChannel(img);
+        
+    }
+    img.src = url;
+}
+
+function drawChannel(img){
+    // return;
+    var canvas = document.createElement('canvas');
+          ctx = canvas.getContext('2d');
+    canvas.height = img.height;
+    canvas.width = img.width;      
+    ctx.drawImage(img, 0,0, img.width, img.height);
+    document.getElementById('preview').appendChild(canvas);
+    var data = ctx.getImageData(0,0,img.width,img.height);
+    console.log(img.height);
+    
+    var z = 0;
+    var offset;
+    var d = data.data;
+    for (var i=0; i < img.height; i++) {
+        z++;
+        for (var j=0; j < img.width; j++) {
+            offSet = parseInt(((i*(data.width*4)) + (j*4)));
+            for (var k=0; k <= 2; k++) {
+                
+                var rVal = Math.abs((data.data[offSet + k]) - 255);
+                data.data[offSet+ k] = rVal;
+            }
+            
+        }
+    }
+    ctx.putImageData(data,0,0);
+}
+
+function levels(img){
+    
+}
+
+
+
+var f = document.getElementById('theform');
+f.addEventListener('submit', function(e){
+    e.preventDefault();
+    
+    checkit(document.getElementById('img').value);
+});
+</script>
+</html>
