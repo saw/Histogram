@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+
+This is a sample 
+of how to use the histogram yui module.
+
+Limitations: this works great for up to 1024x768 images.
+On webkit I found that a full 12mp jpg took 13ms (blocking) but did not crash
+
+-->
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width">
+	<title>Histogram!</title>
+</head>
+<body>
+    <h1>Hist-o-gram</h1>
+
+    <p> Enter a url to jpg, get a cool histogram. There is no server side component to this, entirely client side.</p>
+    <form id="theform" action="/" method="get" accept-charset="utf-8">
+        
+        <p><label for="img">Check out this image:</label><input id="img" type="text" value="bacon.jpg"></p>
+
+        <p><input type="submit" value="Continue &rarr;"></p>
+    </form>
+    <div id="preview">
+        
+    </div>
+</body>
+<script src="http://yui.yahooapis.com/3.5.0pr2/build/yui/yui-min.js"></script>
+<script src="histogram.js"></script>
+<script type="text/javascript">
+
+YUI().use('histogram', 'dom', 'event', 'node', function(Y){
+
+    function makeHistogram(img){
+        var histogram = new Y.Histogram(img, {height:120, width:200});
+        var holder = Y.one('#preview');
+        var img = holder.create('<img>');
+        histogram.build(function(o){
+            img.set('src', o.toDataURI());
+            holder.appendChild(img);
+        });
+        
+    }
+
+    Y.one('#theform').on('submit', function(e){
+        e.preventDefault();
+
+        var url = e.target.one('#img').get('value');
+
+        makeHistogram(url);
+
+    });
+    
+});
+
+</script>
+</html>
